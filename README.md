@@ -37,4 +37,4 @@
 - 外语口语重，导致识别的准确率低
 - 录音内容过于口语化，导致摘要的准确率低
 ## 产品功能结构图
-![avatar](/智能录音app.png)
+![avatar](https://github.com/846626465/api-/blob/master/%E6%99%BA%E8%83%BD%E5%BD%95%E9%9F%B3app.png)
