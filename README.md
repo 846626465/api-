@@ -84,3 +84,10 @@ client.asr(get_file_content('audio.pcm'), 'pcm', 16000, {
     "sn": null
 }
 ```
+
+### 百度AIP代码尝试输入以及输出
+- 首先，创建百度API应用。获取key。 
+![avatar](https://github.com/846626465/api-/blob/master/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB1_%E5%89%AF%E6%9C%AC.png)
+- 准备对一段wav格式的语音文件进行识别处理。
+- 初次尝试成功输出语音识别文字内容为：
+![avatar](https://github.com/846626465/api-/blob/master/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB2.png)
