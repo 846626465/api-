@@ -39,88 +39,48 @@
 ## 产品功能结构图
 ![avatar](https://github.com/846626465/api-/blob/master/%E6%99%BA%E8%83%BD%E5%BD%95%E9%9F%B3app.png)
 
-## API 产品使用关键AI或机器学习之API的输出入展示
-- 语音转写
+## API运用可行性展示：
+### 接口描述：
+- 向远程服务上传整段语音进行识别 ，输入音频文件，输出文本信息。
+### 接口地址以及SDK调用：
+AipSpeech是语音识别的Python SDK客户端，为使用语音识别的开发人员提供了一系列的交互方法。 参考如下代码新建一个AipSpeech：
 ```
-# -*- coding: utf-8 -*-
-import os
-import time
-import threading
-import ali_speech
-from ali_speech.callbacks import SpeechTranscriberCallback
-from ali_speech.constant import ASRFormat
-from ali_speech.constant import ASRSampleRate
-class MyCallback(SpeechTranscriberCallback):
-    """
-    构造函数的参数没有要求，可根据需要设置添加
-    示例中的name参数可作为待识别的音频文件名，用于在多线程中进行区分
-    """
-    def __init__(self, name='default'):
-        self._name = name
-    def on_started(self, message):
-        print('MyCallback.OnRecognitionStarted: %s' % message)
-    def on_result_changed(self, message):
-        print('MyCallback.OnRecognitionResultChanged: file: %s, task_id: %s, result: %s' % (
-            self._name, message['header']['task_id'], message['payload']['result']))
-    def on_sentence_begin(self, message):
-        print('MyCallback.on_sentence_begin: file: %s, task_id: %s, sentence_id: %s, time: %s' % (
-            self._name, message['header']['task_id'], message['payload']['index'], message['payload']['time']))
-    def on_sentence_end(self, message):
-        print('MyCallback.on_sentence_end: file: %s, task_id: %s, sentence_id: %s, time: %s, result: %s' % (
-            self._name,
-            message['header']['task_id'], message['payload']['index'],
-            message['payload']['time'], message['payload']['result']))
-    def on_completed(self, message):
-        print('MyCallback.OnRecognitionCompleted: %s' % message)
-    def on_task_failed(self, message):
-        print('MyCallback.OnRecognitionTaskFailed-task_id:%s, status_text:%s' % (
-            message['header']['task_id'], message['header']['status_text']))
-    def on_channel_closed(self):
-        print('MyCallback.OnRecognitionChannelClosed')
-def process(client, appkey, token):
-    audio_name = 'nls-sample-16k.wav'
-    callback = MyCallback(audio_name)
-    transcriber = client.create_transcriber(callback)
-    transcriber.set_appkey(appkey)
-    transcriber.set_token(token)
-    transcriber.set_format(ASRFormat.PCM)
-    transcriber.set_sample_rate(ASRSampleRate.SAMPLE_RATE_16K)
-    transcriber.set_enable_intermediate_result(False)
-    transcriber.set_enable_punctuation_prediction(True)
-    transcriber.set_enable_inverse_text_normalization(True)
-    try:
-        ret = transcriber.start()
-        if ret < 0:
-            return ret
-        print('sending audio...')
-        with open(audio_name, 'rb') as f:
-            audio = f.read(3200)
-            while audio:
-                ret = transcriber.send(audio)
-                if ret < 0:
-                    break
-                time.sleep(0.1)
-                audio = f.read(3200)
-        transcriber.stop()
-    except Exception as e:
-        print(e)
-    finally:
-        transcriber.close()
-def process_multithread(client, appkey, token, number):
-    thread_list = []
-    for i in range(0, number):
-        thread = threading.Thread(target=process, args=(client, appkey, token))
-        thread_list.append(thread)
-        thread.start()
-    for thread in thread_list:
-        thread.join()
-if __name__ == "__main__":
-    client = ali_speech.NlsClient()
-    # 设置输出日志信息的级别：DEBUG、INFO、WARNING、ERROR
-    client.set_log_level('INFO')
-    appkey = '您的appkey'
-    token = '您的Token'
-    process(client, appkey, token)
-    # 多线程示例
-    # process_multithread(client, appkey, token, 2)
+from aip import AipSpeech
+
+""" 你的 APPID AK SK """
+APP_ID = '你的 App ID'
+API_KEY = '你的 Api Key'
+SECRET_KEY = '你的 Secret Key'
+
+client = AipSpeech(APP_ID, API_KEY, SECRET_KEY)
+```
+- 请求说明 要对段保存有一段语音的语音文件进行识别：
+```
+# 读取文件
+def get_file_content(filePath):
+    with open(filePath, 'rb') as fp:
+        return fp.read()
+
+# 识别本地文件
+client.asr(get_file_content('audio.pcm'), 'pcm', 16000, {
+    'dev_pid': 1536,
+})
+```
+- 返回样例：
+```
+// 成功返回
+{
+    "err_no": 0,
+    "err_msg": "success.",
+    "corpus_no": "15984125203285346378",
+    "sn": "481D633F-73BA-726F-49EF-8659ACCC2F3D",
+    "result": ["北京天气"]
+}
+
+// 失败返回
+{
+    "err_no": 2000,
+    "err_msg": "data empty.",
+    "sn": null
+}
 ```
