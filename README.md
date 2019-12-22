@@ -39,67 +39,110 @@
 百新闻摘要  | 用户想快速地了解大致内容主题  | 次重要|
 文本翻译  | 用户想对外语录音进行翻译  | 次重要|
 
-## 人工智能概率性与用户痛点
-- 录音太模糊，导致识别的准确率低
-- 外语口语重，导致识别的准确率低
-- 录音内容过于口语化，导致摘要的准确率低
-## 产品功能结构图
-![avatar](https://github.com/846626465/api-/blob/master/%E6%99%BA%E8%83%BD%E5%BD%95%E9%9F%B3app.png)
-
 ## API运用可行性展示：
-### 接口描述：
-- 向远程服务上传整段语音进行识别 ，输入音频文件，输出文本信息。
-### 接口地址以及SDK调用：
-AipSpeech是语音识别的Python SDK客户端，为使用语音识别的开发人员提供了一系列的交互方法。 参考如下代码新建一个AipSpeech：
+### API1.使用水平
+1. 讯飞开发平台-语音识别API
+- 接口描述：语音转写（Long Form ASR）基于深度全序列卷积神经网络，将长段音频（5小时以内）数据转换成文本数据，为信息处理和数据挖掘提供基础。
+- 接口地址：http://api.xfyun.cn/v1/service/v1/iat
+- 请求方式:POST  http[s]://raasr.xfyun.cn/api/prepare
+- 输入：
 ```
-from aip import AipSpeech
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+import urllib.request
+import time
+import urllib
+import json
+import hashlib
+import base64
+from urllib import parse
 
-""" 你的 APPID AK SK """
-APP_ID = '你的 App ID'
-API_KEY = '你的 Api Key'
-SECRET_KEY = '你的 Secret Key'
+def main():
+    f = open("AUDIO_PATH", 'rb')
+    file_content = f.read()
+    base64_audio = base64.b64encode(file_content)
+    body = parse.urlencode({'audio': base64_audio})
+
+    url = 'http://api.xfyun.cn/v1/service/v1/iat'
+    api_key = 'API_KEY'
+    param = {"engine_type":"sms16k","aue":"raw"}
+
+    x_appid = 'APPID'
+    json_str = json.dumps(param).replace(' ', '')
+    print('json_str:{}'.format(json_str))
+    x_param = base64.b64encode(bytes(json_str, 'ascii'))
+    x_time = int(int(round(time.time() * 1000)) / 1000)
+    x_checksum_str = api_key + str( x_time ) + str(x_param)[2:-1]
+    print('x_checksum_str:[{}]'.format(x_checksum_str))
+    x_checksum = hashlib.md5(x_checksum_str.encode(encoding='ascii')).hexdigest()
+    print('x_checksum:{}'.format(x_checksum))
+    x_header = {'X-Appid': x_appid,
+                'X-CurTime': x_time,
+                'X-Param': x_param,
+                'X-CheckSum': x_checksum}
+
+    start_time = time.time()
+    req = urllib.request.Request(url, bytes(body, 'ascii'), x_header)
+    result = urllib.request.urlopen(req)
+    result = result.read()
+    print( "used time: {}s".format( round( time.time() - start_time, 2 ) ) )
+    print('result:'+str(result.decode(encoding='UTF8')))
+    return
+
+if __name__ == '__main__':
+    main() 
+```
+- 输出：
+```
+json_str:{"engine_type":"sms16k","aue":"raw"}
+
+used time: 0.82s
+result:{"code":"0","data":"特别是跨省区电网超计划用电，不仅损害自己，也损害别人，损害电网，损害国家。","desc":"success","sid":"zat006392f7@ch6b010ed8627f3d3700"}
+```
+
+2. 百度AI平台-语音识别API
+- 接口描述：向远程服务上传整段语音进行识别 ，输入音频文件，输出文本信息。
+- 接口地址以及SDK调用：AipSpeech是语音识别的Python SDK客户端，为使用语音识别的开发人员提供了一系列的交互方法。 
+- 输入：
+```
+#先pip install baidu-aip
+from aip import AipSpeech
+import time
+
+APP_ID = 'APP_ID'
+API_KEY = 'API_KEY'
+SECRET_KEY = 'SECRET_KEY'
 
 client = AipSpeech(APP_ID, API_KEY, SECRET_KEY)
-```
-- 请求说明 要对段保存有一段语音的语音文件进行识别：
-```
-# 读取文件
+
 def get_file_content(filePath):
     with open(filePath, 'rb') as fp:
         return fp.read()
 
 # 识别本地文件
-client.asr(get_file_content('audio.pcm'), 'pcm', 16000, {
-    'dev_pid': 1536,
+start_time = time.time()
+ret = client.asr(get_file_content('./aideo_files/A2_58.wav'), 'pcm', 16000, {
+    'dev_pid': 1537,
 })
+used_time = time.time() - start_time
+
+print( "used time: {}s".format( round( time.time() - start_time, 2 ) ) )
+print('ret:{}'.format(ret))
 ```
-- 返回样例：
+- 输出：
 ```
-// 成功返回
-{
-    "err_no": 0,
-    "err_msg": "success.",
-    "corpus_no": "15984125203285346378",
-    "sn": "481D633F-73BA-726F-49EF-8659ACCC2F3D",
-    "result": ["北京天气"]
-}
+used time: 8.18s
+ret:{'corpus_no': '6592465378279780417', 'err_msg': 'success.', 'err_no': 0, 'result':
+['特别是跨省区电网超计划用电，不仅损害自己也损害别人损害电网损害国家，'], 'sn': '148955205071534927957'}
 
-// 失败返回
-{
-    "err_no": 2000,
-    "err_msg": "data empty.",
-    "sn": null
-}
 ```
+### API2.使用比较分析
+- 小结
 
-### 百度AIP代码尝试输入以及输出
-- 首先，创建百度API应用。获取key。 
-![avatar](https://github.com/846626465/api-/blob/master/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB1_%E5%89%AF%E6%9C%AC.png)
-- 准备对一段wav格式的语音文件进行识别处理。
-- 初次尝试成功输出语音识别文字内容为：
-![avatar](https://github.com/846626465/api-/blob/master/%E8%AF%AD%E9%9F%B3%E8%AF%86%E5%88%AB2.png)
-- 初次尝试成功输出语音识别文字内容为：
+对比项  | 百度语音转写API  | 讯飞语音转写API|
+|  ----  | ----  |  ---- |
+效率  | 速度快  | 速度慢|
+精确度 | 断句效果更好 | 断句效果不太好|
+性价比 | 1.15-2.20元/小时 | 4.9-9.90元/小时|
 
->人工智能赋能产业是一个从量变到质变的过程。专家认为，要想进一步推进人工智能产业发展，就需要搭建良好的产业生态链条，需要学界和产业界共同努力，探索拓展产业的边界和范围。这包括了从源头找到有价值的问题、基础支撑平台技术的创新、培育领军企业等>
 
-- 故通过百度API语音接口输入输出训练，发现百度API准确性高，速度快。
