@@ -41,7 +41,7 @@
 标题  | 用户案例  | 重要程度|
 |  ----  | ----  |  ---- |
 音频文件转写API  | 用户想对录音的内容进行笔记  | 重要|
-文字识别API  | 用户想提取出图片内的文本信息 | 重要|
+计算机视觉API  | 用户想提取出图片内的文本信息 | 重要|
 文本纠错API  | 相对自己编辑笔记的错误进行纠正  | 次重要|
 文本翻译API  | 用户想对外语录音进行翻译  | 次重要|
 
@@ -67,8 +67,8 @@
 ### 可用API
 1. 百度音频文件转写API/ 讯飞语音转文本API
 2. 百度文本纠错API/聚合文本纠错API/Azure必应拼写检查API
-3. 百度文字识别API/Azure文本识别API
-4. 百度文本翻译API/ Azure文本翻译API
+3. 通用文字识别API/Azure计算机视觉API
+4. 百度文本翻译API/讯飞文本翻译API
 
 ### API1.使用水平
 #### 语音识别API使用测试
@@ -304,19 +304,18 @@ print(json.dumps(json_response, indent=4))
 - ![聚合数据](https://github.com/846626465/api-/blob/master/%E6%95%B0%E6%8D%AE%E8%81%9A%E5%90%88-%E6%96%87%E6%9C%AC%E7%BA%A0%E9%94%99.png)
 #### 文本纠错API使用比较分析
 - 小结
+
 对比项  | 百度文本纠错API  | Azure必应拼写检查API| 聚合文本纠错API |
 |  ----  | ----  |  ---- |  ---- |
-功能  | 仅支持中文，支持错别字、短文本、长文本、语音识别结果等多种文本内容识别与纠正  | 仅支持英文，可纠正拼写错误和识别姓名、断字、 品牌名和俚语|  仅支持中文，其他功能未说明 |
+功能  | 仅支持中文，支持错别字、短文本、长文本、语音识别结果等多种文本内容识别与纠正  | 仅支持英文，可纠正拼写错误和识别姓名、断字、品牌名和俚语|  仅支持中文，其他功能未说明 |
 精确度 | 识别精度高 | 识别精度高 |  效果一般 |
 字节量 | 上限511字节 | 无标明上限 |  上限400字节 |
 性价比 | 0.0025元/每次 | 0.0035元/每次|  0.0067元/次 |
 
 
 #### 文字识别API使用测试
-1. 百度开发平台-文字识别API
-- 接口描述：识别输入文本中有错误的片段，提示错误并给出正确的文本结果。支持短文本、长文本、语音等内容的错误识别，纠错是搜索引擎、语音识别、内容审查等功能更好运行的基础模块之一。
-- 接口地址：https://aip.baidubce.com/rpc/2.0/nlp/v1/ecnet
-- HTTP方法: POST
+1. Azure开发平台-计算机视觉API
+- 接口描述：可以使用计算机视觉读取 API 将印刷文本和手写文本从图像中提取到计算机可读的字符流。 该读取 API 使用最新的模型，适用于各种表面和背景（如收据、海报、名片、信件和白板）上的文本。 目前，英语是唯一受支持的语言。
 - 输入：
 ```
 import requests
@@ -390,13 +389,272 @@ for polygon in polygons:
 ```
 
 - 输出：
-```
+![Azure](https://github.com/846626465/api-/blob/master/Azure%E6%96%87%E6%9C%AC%E8%AF%86%E5%88%AB.png)
 
-```
-2. Azure开发平台-文本识别API
-- 接口描述：识别输入文本中有错误的片段，提示错误并给出正确的文本结果。支持短文本、长文本、语音等内容的错误识别，纠错是搜索引擎、语音识别、内容审查等功能更好运行的基础模块之一。
-- 接口地址：https://aip.baidubce.com/rpc/2.0/nlp/v1/ecnet
+2. 百度开发平台-通用文字识别API
+- 接口描述：基于业界领先的深度学习技术，提供多场景、多语种、高精度的整图文字检测和识别服务
+- 接口地址：https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic
 - HTTP方法: POST
-- 输入：
+- 输入中文图片：
+- ![百度](https://github.com/846626465/api-/blob/master/demo3.png)
+- 输入代码：
+```
+import urllib3,base64
+from urllib.parse import urlencode
+access_token='24.f533ed26aae0977637847fc313219a89.2592000.1579694332.282335-18092334'
+http=urllib3.PoolManager()
+url='https://aip.baidubce.com/rest/2.0/ocr/v1/general?access_token='+access_token
+f = open('D:/demo3.png','rb')
+#参数image：图像base64编码
+img = base64.b64encode(f.read())
+params={'image':img}
+#对base64数据进行urlencode处理
+params=urlencode(params)
+request=http.request('POST', 
+                      url,
+                      body=params,
+                      headers={'Content-Type':'application/x-www-form-urlencoded'})
 
+#对返回的byte字节进行处理。Python3输出位串，而不是可读的字符串，需要进行转换
+result = str(request.data,'utf-8')
+print(result)
+```
 - 输出：
+```
+('{"log_id": 3132648805747643351, "words_result_num": 7, "words_result": '
+ '[{"location": {"width": 415, "top": 336, "left": 492, "height": 53}, '
+ '"words": "Ihttp://www.baidu.comm"}, {"location": {"width": 576, "top": 355, '
+ '"left": 540, "height": 93}, "words": "北京市海淀区上地十街10号100085"}, {"location": '
+ '{"width": 897, "top": 377, "left": 553, "height": 124}, "words": "No. 10 '
+ 'Shangdi 10th Street, Haidian District, Beijing 100085"}, {"location": '
+ '{"width": 427, "top": 472, "left": 643, "height": 66}, "words": '
+ '"+8610-5292888"}, {"location": {"width": 173, "top": 451, "left": 1052, '
+ '"height": 49}, "words": "86105992"}, {"location": {"width": 77, "top": 444, '
+ '"left": 1222, "height": 34}, "words": "0900"}, {"location": {"width": 77, '
+ '"top": 504, "left": 564, "height": 39}, "words": "Tel:"}]}')
+```
+- 输入中文图片：
+- ![百度](https://github.com/846626465/api-/blob/master/demo4.png)
+- 输入代码：
+```
+import urllib3,base64
+from urllib.parse import urlencode
+access_token='24.f533ed26aae0977637847fc313219a89.2592000.1579694332.282335-18092334'
+http=urllib3.PoolManager()
+url='https://aip.baidubce.com/rest/2.0/ocr/v1/general?access_token='+access_token
+f = open('D:/demo4.png','rb')
+#参数image：图像base64编码
+img = base64.b64encode(f.read())
+params={'image':img}
+#对base64数据进行urlencode处理
+params=urlencode(params)
+request=http.request('POST', 
+                      url,
+                      body=params,
+                      headers={'Content-Type':'application/x-www-form-urlencoded'})
+#对返回的byte字节进行处理。Python3输出位串，而不是可读的字符串，需要进行转换
+result = str(request.data,'utf-8')
+print(result)
+```
+- 输出：
+```
+('{"log_id": 302204267115462231, "words_result_num": 11, "words_result": '
+ '[{"location": {"width": 746, "top": 171, "left": 429, "height": 57}, '
+ '"words": "ACKNOWLEDGEMENTS"}, {"location": {"width": 818, "top": 345, '
+ '"left": 392, "height": 46}, "words": "We would like to thank all the '
+ 'designers and"}, {"location": {"width": 812, "top": 395, "left": 397, '
+ '"height": 40}, "words": "contributors who have been involved in the"}, '
+ '{"location": {"width": 819, "top": 443, "left": 393, "height": 51}, "words": '
+ '"production of this book; their contributions"}, {"location": {"width": 816, '
+ '"top": 495, "left": 394, "height": 41}, "words": "have been indispensable to '
+ 'its creation. We"}, {"location": {"width": 816, "top": 546, "left": 395, '
+ '"height": 40}, "words": "would also like to express our gratitude to all"}, '
+ '{"location": {"width": 826, "top": 593, "left": 390, "height": 52}, "words": '
+ '"the producers for their invaluable opinions"}, {"location": {"width": 826, '
+ '"top": 644, "left": 391, "height": 51}, "words": "and assistance throughout '
+ 'this project And to"}, {"location": {"width": 825, "top": 696, "left": 391, '
+ '"height": 40}, "words": "the many others whose names are not credited"}, '
+ '{"location": {"width": 821, "top": 746, "left": 395, "height": 41}, "words": '
+ '"but have made specific input in this book, we"}, {"location": {"width": '
+ '697, "top": 795, "left": 388, "height": 52}, "words": "thank you for your '
+ 'continuous support"}]}')
+```
+#### 文字识别API使用比较分析
+- 小结
+
+对比项  | Azure计算机视觉API | 百度通用文字识别API |
+|  ----  | ----  |  ---- |
+功能  | 可将印刷文本和手写文本从图像中提取到计算机可读的字符流，只支持的语言  | 对图片中的文字进行检测和识别，支持中、英、法、俄、西、葡、德、意、日、韩、中英混合等多语种识别，同时支持中、英、日、韩四语种的类型检测 |
+精确度 | 识别精度高 | 识别精度高 |
+性价比 | 0.0012元/每次 | 0.0025-0.005元/次|
+
+#### 文本翻译API使用测试
+
+1. 百度开发平台-文本翻译API
+- 接口描述：支持28种语言实时互译，覆盖中、英、日、韩、西、法、泰、阿、俄、葡、德、意、荷、芬、丹等；同时支持28种语言的语言检测。
+- 输入：
+```
+import requests
+import json
+import hashlib
+def md5_sign(s):
+    return hashlib.md5(s.encode('utf8')).hexdigest()
+def baidu_fanyi(q):
+    url = "https://fanyi-api.baidu.com/api/trans/vip/translate"
+    f = 'en'
+    to = 'zh'
+    appid = '20191223000369109'   # 自己申请
+    salt = '1435660288'
+    key = 'vfIEwz7sPIfIpikth_St'  # 自己申请
+    finial_str = '%s%s%s%s' % (appid, q, salt, key)
+    sign = md5_sign(finial_str)
+    params = {
+        'q': q,
+        'from': f,
+        'to': to,
+        'appid': appid,
+        'salt': salt,
+        'sign': sign,
+    }
+    res_json = requests.get(url, params=params).json()
+    res = res_json
+    print(res)
+if __name__ == '__main__':
+    baidu_fanyi('the ones who love us never really leave us')
+```
+- 英文翻译中文输出：
+```
+{'from': 'en', 'to': 'zh', 'trans_result': [{'src': 'the ones who love us never really leave us', 'dst': '爱我们的人永远不会离开我们'}]}
+```
+- 中文转英文输出：
+```
+{'from': 'zh', 'to': 'en', 'trans_result': [{'src': '爱我们的人永远不会离开我们', 'dst': 'Those who love us will never leave us'}]}
+```
+2. 讯飞开发平台-文本翻译API
+- 接口描述：机器翻译，基于讯飞自主研发的机器翻译引擎，已经支持包括英、日、法、西、俄等10多种语言(其中维语、藏语暂不对外提供)，效果更优质，已在讯飞翻译机上应用并取得优异成绩，详细请参照 语种列表 。通过调用该接口，将源语种文字转化为目标语种文字。
+该能力是通过HTTP API的方式给开发者提供一个通用的接口。HTTP API适用于一次性交互数据传输的AI服务场景，相较于SDK，API具有轻量、跨语言的特点。另外，请注意该接口使用的HTTP API协议不支持跨域。
+- 输入：
+```
+# -*- coding:utf-8 -*-
+import requests
+import datetime
+import hashlib
+import base64
+import hmac
+import json
+
+class get_result(object):
+    def __init__(self,host):
+        self.APPID = "5dff9ca8"
+        self.APIKey= "846559d4c446aa4eeccf6e0a7e11bf2e"
+        self.Secret = "f33d82fa4752d1ffa2d8d67b7c6993c1"
+        
+        # 以下为POST请求
+        self.Host = host
+        self.RequestUri = "/v2/ots"
+        self.url="https://"+host+self.RequestUri
+        self.HttpMethod = "POST"
+        self.Algorithm = "hmac-sha256"
+        self.HttpProto = "HTTP/1.1"
+
+        # 设置当前时间
+        curTime_utc = datetime.datetime.utcnow()
+        self.Date = self.httpdate(curTime_utc)
+        self.Text="the ones who love us never really leave us"
+        self.BusinessArgs={
+                "from": "en",
+                "to": "zh",
+            }
+    def hashlib_256(self, res):
+        m = hashlib.sha256(bytes(res.encode(encoding='utf-8'))).digest()
+        result = "SHA-256=" + base64.b64encode(m).decode(encoding='utf-8')
+        return result
+    def httpdate(self, dt):
+        """
+        Return a string representation of a date according to RFC 1123
+        (HTTP/1.1).
+
+        The supplied date must be in UTC.
+
+        """
+        weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
+        month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                 "Oct", "Nov", "Dec"][dt.month - 1]
+        return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (weekday, dt.day, month,
+                                                        dt.year, dt.hour, dt.minute, dt.second)
+    def generateSignature(self, digest):
+        signatureStr = "host: " + self.Host + "\n"
+        signatureStr += "date: " + self.Date + "\n"
+        signatureStr += self.HttpMethod + " " + self.RequestUri \
+                        + " " + self.HttpProto + "\n"
+        signatureStr += "digest: " + digest
+        signature = hmac.new(bytes(self.Secret.encode(encoding='utf-8')),
+                             bytes(signatureStr.encode(encoding='utf-8')),
+                             digestmod=hashlib.sha256).digest()
+        result = base64.b64encode(signature)
+        return result.decode(encoding='utf-8')
+    def init_header(self, data):
+        digest = self.hashlib_256(data)
+        sign = self.generateSignature(digest)
+        authHeader = 'api_key="%s", algorithm="%s", ' \
+                     'headers="host date request-line digest", ' \
+                     'signature="%s"' \
+                     % (self.APIKey, self.Algorithm, sign)
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Method": "POST",
+            "Host": self.Host,
+            "Date": self.Date,
+            "Digest": digest,
+            "Authorization": authHeader
+        }
+        return headers
+    def get_body(self):
+        content = str(base64.b64encode(self.Text.encode('utf-8')), 'utf-8')
+        postdata = {
+            "common": {"app_id": self.APPID},
+            "business": self.BusinessArgs,
+            "data": {
+                "text": content,
+            }
+        }
+        body = json.dumps(postdata)
+        return body
+    def call_url(self):
+        if self.APPID == '' or self.APIKey == '' or self.Secret == '':
+            print('Appid 或APIKey 或APISecret 为空！请打开demo代码，填写相关信息。')
+        else:
+            code = 0
+            body=self.get_body()
+            headers=self.init_header(body)
+            #print(self.url)
+            response = requests.post(self.url, data=body, headers=headers,timeout=8)
+            status_code = response.status_code
+            #print(response.content)
+            if status_code!=200:
+                print("Http请求失败，状态码：" + str(status_code) + "，错误信息：" + response.text)
+                print("请根据错误信息检查代码，接口文档：https://www.xfyun.cn/doc/nlp/niutrans/API.html")
+            else:
+                respData = json.loads(response.text)
+                print(respData)
+                code = str(respData["code"])
+                if code!='0':
+                    print("请前往https://www.xfyun.cn/document/error-code?code=" + code + "查询解决办法")
+if __name__ == '__main__':
+    host = "ntrans.xfyun.cn"
+    gClass=get_result(host)
+    gClass.call_url()
+
+```
+- 输出：
+```
+{'code': 0, 'data': {'result': {'from': 'en', 'to': 'zh', 'trans_result': {'dst': '爱我们的人从未真正离开我们', 'src': 'the ones who love us never really leave us'}}}, 'message': 'success', 'sid': 'ots000830f0@dx16f334b43c8a11c902'}
+```
+#### 文本翻译API使用比较分析
+- 小结
+对比项  | 百度文本翻译API | 讯飞文本翻译API |
+|  ----  | ----  |  ---- |
+功能  | 可将印刷文本和手写文本从图像中提取到计算机可读的字符流，只支持的语言  | 对图片中的文字进行检测和识别，支持中、英、法、俄、西、葡、德、意、日、韩、中英混合等多语种识别，同时支持中、英、日、韩四语种的类型检测 |
+精确度 | 识别精度高 | 识别精度高 |
+性价比 | 0.0012元/每次 | 0.0025-0.005元/次|
