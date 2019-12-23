@@ -67,7 +67,7 @@
 ### 可用API
 1. 百度音频文件转写API/ 讯飞语音转文本API
 2. 百度文本纠错API/聚合文本纠错API/Azure必应拼写检查API
-3. 百度文字识别API/Azure识别API
+3. 百度文字识别API/Azure文本识别API
 4. 百度文本翻译API/ Azure文本翻译API
 
 ### API1.使用水平
@@ -234,6 +234,7 @@ txt_correction('汽车形式在这条道路上')
 纠错后： 汽车行驶在这条道路上
 Score： 0.982835
 ```
+- 分析：当尝试输入文本为英文时，百度的文本纠错API无法识别，中文文本纠错置信度较高。
 2. Azure-必应拼写检查API
 - 功能描述：帮助用户更正拼写错误、识别姓名、 品牌名和俚语之间的不同之处，并在键入的同时理解同音异义词。
 - 输入：
@@ -294,17 +295,108 @@ print(json.dumps(json_response, indent=4))
    ]
 }
 ```
+- 分析：当尝试输入文本为中文时，Azure必应拼写检查API无法识别，英文文本纠错置信度较高。
 3. 聚合数据-文本纠错API
 - 接口描述：向远程服务上传整段语音进行识别 ，输入音频文件，输出文本信息。
 - 接口地址：http://apis.juhe.cn/ecnetAnti/index
 - 请求方式：POST/GET
+- 在线功能测试
 - ![聚合数据](https://github.com/846626465/api-/blob/master/%E6%95%B0%E6%8D%AE%E8%81%9A%E5%90%88-%E6%96%87%E6%9C%AC%E7%BA%A0%E9%94%99.png)
 #### 文本纠错API使用比较分析
 - 小结
-
 对比项  | 百度文本纠错API  | Azure必应拼写检查API| 聚合文本纠错API |
 |  ----  | ----  |  ---- |  ---- |
 功能  | 仅支持中文，支持错别字、短文本、长文本、语音识别结果等多种文本内容识别与纠正  | 仅支持英文，可纠正拼写错误和识别姓名、断字、 品牌名和俚语|  仅支持中文，其他功能未说明 |
 精确度 | 识别精度高 | 识别精度高 |  效果一般 |
 字节量 | 上限511字节 | 无标明上限 |  上限400字节 |
 性价比 | 0.0025元/每次 | 0.0035元/每次|  0.0067元/次 |
+
+
+#### 文字识别API使用测试
+1. 百度开发平台-文字识别API
+- 接口描述：识别输入文本中有错误的片段，提示错误并给出正确的文本结果。支持短文本、长文本、语音等内容的错误识别，纠错是搜索引擎、语音识别、内容审查等功能更好运行的基础模块之一。
+- 接口地址：https://aip.baidubce.com/rpc/2.0/nlp/v1/ecnet
+- HTTP方法: POST
+- 输入：
+```
+import requests
+import time
+# If you are using a Jupyter notebook, uncomment the following line.
+# %matplotlib inline
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+from PIL import Image
+from io import BytesIO
+import os,sys
+# Add your Computer Vision subscription key and endpoint to your environment variables.
+if 'COMPUTER_VISION_SUBSCRIPTION_KEY' in os.environ:
+    subscription_key = os.environ['COMPUTER_VISION_SUBSCRIPTION_KEY']
+else:
+    print("\nSet the COMPUTER_VISION_SUBSCRIPTION_KEY environment variable.\n**Restart your shell or IDE for changes to take effect.**")
+    sys.exit()
+
+if 'COMPUTER_VISION_ENDPOINT' in os.environ:
+    endpoint = os.environ['COMPUTER_VISION_ENDPOINT']
+
+text_recognition_url = endpoint + "vision/v2.0/read/core/asyncBatchAnalyze"
+
+# Set image_url to the URL of an image that you want to analyze.
+image_url = "http://n1.itc.cn/img8/wb/smccloud/recom/2015/10/08/144428390443326171.JPEG"
+
+headers = {'Ocp-Apim-Subscription-Key': subscription_key}
+data = {'url': image_url}
+response = requests.post(
+    text_recognition_url, headers=headers, json=data)
+response.raise_for_status()
+
+# Extracting text requires two API calls: One call to submit the
+# image for processing, the other to retrieve the text found in the image.
+
+# Holds the URI used to retrieve the recognized text.
+operation_url = response.headers["Operation-Location"]
+
+# The recognized text isn't immediately available, so poll to wait for completion.
+analysis = {}
+poll = True
+while (poll):
+    response_final = requests.get(
+        response.headers["Operation-Location"], headers=headers)
+    analysis = response_final.json()
+    print(analysis)
+    time.sleep(1)
+    if ("recognitionResults" in analysis):
+        poll = False
+    if ("status" in analysis and analysis['status'] == 'Failed'):
+        poll = False
+
+polygons = []
+if ("recognitionResults" in analysis):
+    # Extract the recognized text, with bounding boxes.
+    polygons = [(line["boundingBox"], line["text"])
+                for line in analysis["recognitionResults"][0]["lines"]]
+
+# Display the image and overlay it with the extracted text.
+plt.figure(figsize=(15, 15))
+image = Image.open(BytesIO(requests.get(image_url).content))
+ax = plt.imshow(image)
+for polygon in polygons:
+    vertices = [(polygon[0][i], polygon[0][i+1])
+                for i in range(0, len(polygon[0]), 2)]
+    text = polygon[1]
+    patch = Polygon(vertices, closed=True, fill=False, linewidth=2, color='y')
+    ax.axes.add_patch(patch)
+    plt.text(vertices[0][0], vertices[0][1], text, fontsize=20, va="top")
+
+```
+
+- 输出：
+```
+
+```
+2. Azure开发平台-文本识别API
+- 接口描述：识别输入文本中有错误的片段，提示错误并给出正确的文本结果。支持短文本、长文本、语音等内容的错误识别，纠错是搜索引擎、语音识别、内容审查等功能更好运行的基础模块之一。
+- 接口地址：https://aip.baidubce.com/rpc/2.0/nlp/v1/ecnet
+- HTTP方法: POST
+- 输入：
+
+- 输出：
