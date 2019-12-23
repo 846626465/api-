@@ -298,26 +298,7 @@ print(json.dumps(json_response, indent=4))
 - 接口描述：向远程服务上传整段语音进行识别 ，输入音频文件，输出文本信息。
 - 接口地址：http://apis.juhe.cn/ecnetAnti/index
 - 请求方式：POST/GET
-- 输入：
-- 输出：
-```
-{
-	"reason":"success",
-	"result":{
-		"text":"汽车形式在这条道路上",
-		"data":[
-			{
-				"ori":"汽车形式",
-				"correct":"汽车行驶",
-				"start_pos":1,
-				"end_pos":4
-			}
-		],
-		"score":0.982835
-	},
-	"error_code":0
-}
-```
+![]('')
 #### 文本纠错API使用比较分析
 - 小结
 
