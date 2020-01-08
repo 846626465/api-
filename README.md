@@ -77,8 +77,8 @@
 - 场景四：小明在对音转文本进行编辑的时候，出现了错别字，文本纠错功能自动为其打上了下划线提示，最后小明及时对其进行了更正。
 # 原型设计
 ## 使用者交互与设计
-- [原型文档展示](http://nfunm042.gitee.io/api)
-- [原型文档下载区](https://gitee.com/NFUNM042/APi)
+- [原型文档展示](http://nfunm042.gitee.io/new-api)
+- [原型文档下载区](https://gitee.com/NFUNM042/new-api.git)
 ## 交互及界面设计
 - 录音主页面
 - ![录音主页面](https://github.com/846626465/api-/blob/master/%E5%8E%9F%E5%9E%8B%E5%9B%BE/luyin.png)
